@@ -4,6 +4,9 @@ export default defineConfig({
   title: 'IDC 设备资产管理系统',
   description: '现代化数据中心设备管理平台 - 文档站点',
   lang: 'zh-CN',
+
+  // GitHub Pages 部署配置
+  base: '/idc_assest-docs/',
   ignoreDeadLinks: [
     /^https?:\/\/localhost/,
   ],
