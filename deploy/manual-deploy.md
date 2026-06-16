@@ -48,7 +48,7 @@ cd idc_assest
 ### 方式二：一键安装（无需克隆）
 
 ```bash
-curl -fsSL https://gitee.com/zhang96110/idc_assest/raw/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/gituib/idc_assest/main/install.sh | bash
 ```
 
 > **注意**：一键安装时脚本会自动克隆项目到当前目录下的 `idc_assest` 文件夹。
