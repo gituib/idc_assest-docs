@@ -1,0 +1,13 @@
+{
+  "name": "idc-assest-docs",
+  "version": "1.0.0",
+  "description": "IDC设备管理系统 - 文档站点",
+  "scripts": {
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
+  },
+  "devDependencies": {
+    "vitepress": "^1.6.3"
+  }
+}
