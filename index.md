@@ -46,3 +46,8 @@ features:
     details: 基于RBAC的用户角色权限管理、系统参数配置，保障系统安全可控。
     icon: ⚙️
 ---
+
+::: tip 部署说明
+本文档站点使用 **VitePress** 构建，通过 GitHub Actions 自动部署到 **GitHub Pages**。  
+配置文件中 `base` 设置为 `/idc_assest-docs/`，对应仓库名称路径，确保静态资源引用正确。
+:::---
