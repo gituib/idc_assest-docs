@@ -113,9 +113,35 @@ export default defineConfig({
           text: 'API参考',
           items: [
             { text: 'API概览', link: '/api/overview' },
+            { text: '认证接口', link: '/api/auth' },
+          ],
+        },
+        {
+          text: '资产管理',
+          items: [
+            { text: '机房接口', link: '/api/rooms' },
+            { text: '机柜接口', link: '/api/racks' },
             { text: '设备接口', link: '/api/devices' },
+            { text: '端口接口', link: '/api/ports' },
+            { text: '线缆接口', link: '/api/cables' },
+          ],
+        },
+        {
+          text: '业务管理',
+          items: [
             { text: '工单接口', link: '/api/tickets' },
+            { text: '耗材接口', link: '/api/consumables' },
+            { text: '盘点接口', link: '/api/inventory' },
+          ],
+        },
+        {
+          text: '系统管理',
+          items: [
+            { text: '用户与角色接口', link: '/api/users' },
+            { text: '系统设置接口', link: '/api/system-settings' },
             { text: '备份接口', link: '/api/backup' },
+            { text: '统计接口', link: '/api/statistics' },
+            { text: '操作日志接口', link: '/api/operation-logs' },
           ],
         },
       ],
