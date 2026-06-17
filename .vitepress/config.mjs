@@ -21,6 +21,11 @@ export default defineConfig({
     nav: [
       { text: '首页', link: '/' },
       {
+        text: '部署运维',
+        link: '/deploy/docker-deploy',
+        activeMatch: '/deploy/',
+      },
+      {
         text: '使用指南',
         link: '/guide/user-guide',
         activeMatch: '/guide/',
@@ -29,11 +34,6 @@ export default defineConfig({
         text: '开发手册',
         link: '/dev/code-wiki',
         activeMatch: '/dev/',
-      },
-      {
-        text: '部署运维',
-        link: '/deploy/docker-deploy',
-        activeMatch: '/deploy/',
       },
       {
         text: 'API文档',
