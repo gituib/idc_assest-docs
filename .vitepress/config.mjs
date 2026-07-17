@@ -31,11 +31,6 @@ export default defineConfig({
         activeMatch: '/guide/',
       },
       {
-        text: '开发手册',
-        link: '/dev/code-wiki',
-        activeMatch: '/dev/',
-      },
-      {
         text: 'API文档',
         link: '/api/overview',
         activeMatch: '/api/',
@@ -71,30 +66,6 @@ export default defineConfig({
             { text: '操作日志', link: '/guide/features/operation-logs' },
             { text: '备份管理', link: '/guide/features/backup-management' },
             { text: '系统管理', link: '/guide/features/system-management' },
-          ],
-        },
-      ],
-      '/dev/': [
-        {
-          text: '开发指南',
-          items: [
-            { text: 'Code Wiki', link: '/dev/code-wiki' },
-          ],
-        },
-        {
-          text: '架构设计',
-          items: [
-            { text: '系统架构', link: '/dev/architecture' },
-            { text: '前端架构', link: '/dev/frontend-architecture' },
-            { text: '后端架构', link: '/dev/backend-architecture' },
-            { text: '数据模型', link: '/dev/data-model' },
-          ],
-        },
-        {
-          text: '设计文档',
-          items: [
-            { text: '系统设置重写设计', link: '/dev/specs/system-settings-rewrite' },
-            { text: '设备字段必填规则设计', link: '/dev/specs/device-field-required' },
           ],
         },
       ],
