@@ -2,6 +2,8 @@
 
 备份管理用于数据库的备份与恢复，保障数据安全。
 
+![备份管理概览](/images/screenshots/backup-management.png)
+
 ## 备份管理
 
 ### 手动备份
