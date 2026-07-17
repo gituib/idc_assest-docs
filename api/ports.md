@@ -2,6 +2,8 @@
 
 端口接口用于管理设备上的物理网络接口，支持端口与网卡的绑定，是网络运维的基础数据支撑。
 
+> **v2.2.0 更新**：新增端口批量操作接口（批量编辑、批量清理），支持分组预览功能，提升端口运维效率。
+
 > **v2.1.1 更新**：端口列表支持按设备分组分页查询，解决端口数量过多时的分页问题。
 
 ## 数据模型
@@ -160,6 +162,73 @@ PUT /api/ports/:portId
 
 ```http
 DELETE /api/ports/:portId
+```
+
+## 批量编辑端口
+
+v2.2.0 新增，支持一次性修改多个端口的公共属性，避免逐条编辑。
+
+```http
+PUT /api/ports/batch
+Content-Type: application/json
+```
+
+### 请求体
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `portIds` | integer[] | 是 | 端口 ID 列表 |
+| `portType` | string | 否 | 批量修改端口类型 |
+| `speed` | string | 否 | 批量修改速率 |
+| `status` | string | 否 | 批量修改状态 |
+| `networkCardId` | integer | 否 | 批量绑定网卡 |
+| `remark` | string | 否 | 批量修改备注 |
+
+### 请求示例
+
+```json
+{
+  "portIds": [1, 2, 3],
+  "portType": "optical",
+  "speed": "10Gbps"
+}
+```
+
+### 响应示例
+
+```json
+{
+  "success": true,
+  "data": { "updated": 3 },
+  "message": "批量更新成功"
+}
+```
+
+## 批量清理端口
+
+v2.2.0 新增，批量清除指定端口的绑定关系和备注信息，用于端口回收重置场景。
+
+```http
+PUT /api/ports/batch/clear
+Content-Type: application/json
+```
+
+### 请求体
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `portIds` | integer[] | 是 | 端口 ID 列表 |
+| `unbindCard` | boolean | 否 | 是否解除网卡绑定，默认 true |
+| `clearRemark` | boolean | 否 | 是否清除备注，默认 true |
+
+### 响应示例
+
+```json
+{
+  "success": true,
+  "data": { "cleared": 5 },
+  "message": "批量清理成功"
+}
 ```
 
 ## 绑定网卡

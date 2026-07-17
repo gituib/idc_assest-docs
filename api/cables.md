@@ -2,6 +2,8 @@
 
 线缆接口用于管理设备端口之间的物理链路连接，支撑网络拓扑可视化与链路追踪。
 
+> **v2.2.0 更新**：优化线缆管理流程，新增跳线引导接口，支持根据源端口智能推荐可用目标端口，提升接线操作体验。
+
 ## 数据模型
 
 | 字段 | 类型 | 说明 |
@@ -71,6 +73,59 @@ GET /api/cables
 ```http
 GET /api/cables/:cableId
 ```
+
+## 跳线引导
+
+v2.2.0 新增，根据源端口智能推荐可用的目标端口，引导用户完成跳线操作。
+
+```http
+GET /api/cables/guide
+```
+
+### 查询参数
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `sourcePortId` | integer | 是 | 源端口 ID |
+| `cableType` | string | 否 | 线缆类型，用于筛选匹配的目标端口类型 |
+
+### 响应示例
+
+```json
+{
+  "success": true,
+  "data": {
+    "sourcePort": {
+      "portId": 1,
+      "portName": "eth0",
+      "portType": "network",
+      "deviceId": 1,
+      "deviceName": "Server-01"
+    },
+    "availableTargets": [
+      {
+        "deviceId": 2,
+        "deviceName": "Switch-01",
+        "ports": [
+          {
+            "portId": 10,
+            "portName": "GigabitEthernet0/1",
+            "portType": "network",
+            "speed": "1Gbps",
+            "status": "active"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### 说明
+
+- 接口返回的均为**未建立连接**的可用端口，已连接端口会被自动过滤
+- 当指定 `cableType` 时，系统会根据线缆类型匹配对应类型的端口（如光纤匹配光口）
+- 前端可基于返回结果渲染端口选择器，引导用户逐步完成跳线
 
 ## 创建线缆
 
