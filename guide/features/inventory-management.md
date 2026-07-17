@@ -4,6 +4,8 @@
 
 盘点计划用于制定和管理资产盘点任务。
 
+![资产盘点概览](/images/screenshots/inventory-management.png)
+
 ### 创建盘点计划
 
 1. 进入「盘点计划」页面

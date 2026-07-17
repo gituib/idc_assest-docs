@@ -4,6 +4,8 @@
 
 机房管理用于维护数据中心的基础信息。
 
+![机房管理概览](/images/screenshots/room-management.png)
+
 ### 新增机房
 
 1. 进入「机房管理」页面

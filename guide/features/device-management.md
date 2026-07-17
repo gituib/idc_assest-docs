@@ -4,6 +4,8 @@
 
 设备管理是系统的核心功能，提供设备全生命周期管理。
 
+![设备管理概览](/images/screenshots/device-management.png)
+
 ### 设备状态流转
 
 ```

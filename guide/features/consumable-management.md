@@ -4,6 +4,8 @@
 
 提供库存数据的可视化分析，包括：库存总览、分类统计、库存预警、领用趋势。
 
+![耗材管理概览](/images/screenshots/consumable-management.png)
+
 ## 耗材列表
 
 ### 新增耗材

@@ -4,6 +4,8 @@
 
 用户管理用于管理系统用户账号和权限。
 
+![系统管理概览](/images/screenshots/system-management.png)
+
 ### 用户状态
 
 | 状态 | 说明 |

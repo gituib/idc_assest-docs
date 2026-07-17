@@ -2,6 +2,8 @@
 
 操作日志用于审计系统中所有用户操作记录。
 
+![操作日志概览](/images/screenshots/operation-logs.png)
+
 ## 功能说明
 
 | 功能 | 说明 |
