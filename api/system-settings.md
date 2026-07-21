@@ -218,6 +218,96 @@ GET /api/settings/initialized
 }
 ```
 
+## 获取系统版本信息
+
+```http
+GET /api/system/info
+```
+
+无需认证。返回系统版本和部署环境信息。
+
+### 响应示例
+
+```json
+{
+  "success": true,
+  "data": {
+    "version": "2.2.4",
+    "name": "IDC 设备资产管理系统",
+    "isDocker": false
+  }
+}
+```
+
+## 检查系统版本更新
+
+> v2.3.2 新增
+
+```http
+POST /api/system/check-update
+Authorization: Bearer <token>
+```
+
+检查是否有新版本可用。返回最新版本信息及更新指引。
+
+### 响应示例
+
+```json
+{
+  "success": true,
+  "data": {
+    "currentVersion": "2.2.4",
+    "latestVersion": "2.2.4",
+    "hasUpdate": false,
+    "publishedAt": "2026-07-21T00:00:00.000Z",
+    "releaseUrl": "https://github.com/gituib/idc_assest/releases/tag/v2.3.3",
+    "releaseNotes": "...",
+    "isDocker": false,
+    "projectPath": "/path/to/idc_assest"
+  }
+}
+```
+
+## 获取开源许可列表
+
+> v2.3.2 新增
+
+```http
+GET /api/system/licenses
+Authorization: Bearer <token>
+```
+
+获取系统前后端所有依赖包的开源许可信息。
+
+### 响应示例
+
+```json
+{
+  "success": true,
+  "data": {
+    "success": true,
+    "total": 120,
+    "licenses": [
+      {
+        "name": "react",
+        "installedVersion": "18.2.0",
+        "license": "MIT",
+        "scope": "frontend",
+        "type": "runtime",
+        "homepage": "https://react.dev"
+      }
+    ],
+    "groups": [
+      { "license": "MIT", "count": 80 },
+      { "license": "Apache-2.0", "count": 15 },
+      { "license": "ISC", "count": 10 },
+      { "license": "BSD-3-Clause", "count": 8 },
+      { "license": "Unknown", "count": 7 }
+    ]
+  }
+}
+```
+
 ## 错误码
 
 | 错误码 | HTTP | 说明 |

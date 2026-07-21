@@ -56,6 +56,64 @@ Content-Type: application/json
 
 > 连续登录失败达到阈值（默认 5 次）后账号将被锁定一段时间，期间无法登录。
 
+## 邮箱验证码登录
+
+> v2.3.0 新增
+
+使用已验证的邮箱，通过验证码快速登录。
+
+```http
+POST /api/auth/send-code
+Content-Type: application/json
+```
+
+### 请求体
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `email` | string | 是 | 已验证的邮箱地址 |
+
+### 响应
+
+```json
+{
+  "success": true,
+  "message": "验证码已发送到您的邮箱"
+}
+```
+
+### 验证码登录
+
+```http
+POST /api/auth/login-by-code
+Content-Type: application/json
+```
+
+#### 请求体
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `email` | string | 是 | 已验证的邮箱地址 |
+| `code` | string | 是 | 6位验证码 |
+
+#### 响应
+
+```json
+{
+  "success": true,
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "userId": 1,
+      "username": "admin",
+      "email": "admin@example.com",
+      "roles": [{ "roleId": 1, "name": "admin" }]
+    }
+  }
+}
+```
+
 ## 注册
 
 新用户注册后默认进入「待审核」状态，需管理员审核通过后方可登录。
@@ -90,6 +148,91 @@ Content-Type: application/json
   "success": true,
   "data": { "userId": 10, "status": "pending" },
   "message": "注册成功，等待管理员审核"
+}
+```
+
+## 邮箱验证
+
+> v2.3.0 新增
+
+### 发送验证码邮件
+
+```http
+POST /api/auth/send-verify-email
+Authorization: Bearer <token>
+```
+
+### 验证邮箱
+
+```http
+POST /api/auth/verify-email
+```
+
+#### 请求体
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `email` | string | 是 | 邮箱地址 |
+| `code` | string | 是 | 6位验证码 |
+
+#### 响应
+
+```json
+{
+  "success": true,
+  "message": "邮箱验证成功"
+}
+```
+
+## 找回密码
+
+> v2.3.0 新增
+
+### 发送验证码
+
+```http
+POST /api/auth/forgot-password
+Content-Type: application/json
+```
+
+#### 请求体
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `username` | string | 是 | 用户名 |
+| `email` | string | 是 | 已验证的邮箱 |
+
+#### 响应
+
+```json
+{
+  "success": true,
+  "message": "验证码已发送到您的邮箱"
+}
+```
+
+### 重置密码
+
+```http
+POST /api/auth/reset-password
+Content-Type: application/json
+```
+
+#### 请求体
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `username` | string | 是 | 用户名 |
+| `email` | string | 是 | 邮箱 |
+| `code` | string | 是 | 6位验证码 |
+| `newPassword` | string | 是 | 新密码 |
+
+#### 响应
+
+```json
+{
+  "success": true,
+  "message": "密码重置成功"
 }
 ```
 

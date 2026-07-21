@@ -42,7 +42,7 @@ Content-Type: application/json
 
 | 模块 | 基础路径 | 功能描述 |
 |------|----------|----------|
-| [认证](./auth) | `/api/auth` | 登录、注册、Token 刷新 |
+| [认证](./auth) | `/api/auth` | 登录、注册、Token 刷新、邮箱验证、验证码登录、找回密码 |
 | [机房](./rooms) | `/api/rooms` | 机房 CRUD、平面图布局 |
 | [机柜](./racks) | `/api/racks` | 机柜 CRUD、U 位统计 |
 | [设备](./devices) | `/api/devices` | 设备 CRUD、批量导入导出、自定义字段 |
@@ -52,7 +52,7 @@ Content-Type: application/json
 | [耗材](./consumables) | `/api/consumables` | 耗材 CRUD、入库/领用、SN 追踪 |
 | [盘点](./inventory) | `/api/inventory` | 盘点计划/任务/记录 |
 | [用户](./users) | `/api/users` | 用户管理、角色权限 |
-| [系统设置](./system-settings) | `/api/settings` | 系统参数配置 |
+| [系统设置](./system-settings) | `/api/settings`、`/api/system` | 系统参数配置、版本信息、在线更新、开源许可 |
 | [备份](./backup) | `/api/backup` | 备份恢复、自动备份 |
 | [统计](./statistics) | `/api/statistics` | 仪表盘、统计分析 |
 | [操作日志](./operation-logs) | `/api/logs` | 操作审计、查询导出 |
