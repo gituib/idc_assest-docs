@@ -48,11 +48,13 @@ Content-Type: application/json
 | [设备](./devices) | `/api/devices` | 设备 CRUD、批量导入导出、自定义字段 |
 | [端口](./ports) | `/api/ports` | 设备端口管理、网卡绑定 |
 | [线缆](./cables) | `/api/cables` | 线缆连接管理 |
-| [工单](./tickets) | `/api/tickets` | 工单全流程、状态流转 |
+| [工单](./tickets) | `/api/tickets` | 工单全流程、状态流转、趋势统计 |
 | [耗材](./consumables) | `/api/consumables` | 耗材 CRUD、入库/领用、SN 追踪 |
 | [盘点](./inventory) | `/api/inventory` | 盘点计划/任务/记录 |
-| [用户](./users) | `/api/users` | 用户管理、角色权限 |
-| [系统设置](./system-settings) | `/api/settings`、`/api/system` | 系统参数配置、版本信息、在线更新、开源许可 |
+| [用户与角色](./users) | `/api/users`、`/api/roles` | 用户管理、角色管理、权限管理 |
+| [权限](./permissions) | `/api/permissions` | 权限列表查询（三级权限树结构） |
+| [拓扑](./topology) | `/api/topology` | 网络拓扑查询、拓扑布局持久化 |
+| [系统设置](./system-settings) | `/api/settings`、`/api/system` | 系统参数配置、CPU 监控、版本信息、在线更新、开源许可 |
 | [备份](./backup) | `/api/backup` | 备份恢复、自动备份 |
 | [统计](./statistics) | `/api/statistics` | 仪表盘、统计分析 |
 | [操作日志](./operation-logs) | `/api/logs` | 操作审计、查询导出 |

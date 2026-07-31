@@ -4,6 +4,16 @@ editLink: false
 
 # 版本更新
 
+## 文档站点 v2.4.1（2026-07-31）
+
+> 对应项目代码版本 [v2.4.1]
+
+- **同步项目代码更新至 v2.4.1**
+- 新增 v2.3.4 / v2.3.5 / v2.4.0 / v2.4.1 版本更新记录
+- 更新系统管理文档：新增权限管理体系说明、三级权限结构详解、角色管理页面操作指南
+- 更新 API 文档：新增权限接口、角色管理接口、网络拓扑接口、系统监控（CPU 使用率）接口
+- 更新首页概览与 README 导航
+
 ## 文档站点 v1.0.0（2025-06-16）
 
 > 对应项目代码版本 [v2.1.0]
@@ -17,6 +27,67 @@ editLink: false
 - 版本更新记录与 FAQ 常见问题
 
 ## 项目代码
+
+### v2.4.1（2026-07-21）
+
+#### 问题修复
+- 前端组件新增多个组件 catch 分支的 message.error 提示（ServerBackplanePanel / BatchStatusModal / BatchWarrantyModal / DeviceFormModal / TopologyModal / AutoBackupSettings）
+- 修复 CategoryManagement / ConsumableLogs / IdleDeviceManagement / InventoryManagement / TicketManagement 组件卸载后更新 state 的内存泄漏问题（新增 cancelledRef 模式）
+- 移除 CableManagement / PortManagement / BackupManagement / IdleDeviceManagement 中的多余 console.log 调试输出
+- 移除 CableManagement / PortManagement / TicketManagement 未使用的 import 引用
+- ConsumableManagement 修复 Tag 组件 key 从 index 改为 sn，消除 React key 警告
+- PortManagement 修复 clearInterval 在 importProgressInterval 上的变量作用域问题
+
+### v2.4.0（2026-07-21）
+
+#### 新增功能——权限管理体系
+- 新增 requirePermission 中间件，支持细粒度按钮级权限控制
+- 新增 init-permissions.js 种子脚本，预设三层权限结构（模块→菜单→按钮）
+- 新增 RoleManagement 角色管理页面（前端页面 + 后端路由）
+- 新增 permissions.js 路由，所有后端路由批量接入权限中间件
+- 扩展 Permission 模型字段定义
+
+#### 新增功能——网络拓扑重构
+- 新增 CustomEdge 自定义边组件，支持线缆类型（以太网/光纤/铜缆）与状态着色
+- 新增 GlassNodeShell / NodeShell / DeviceIcon 节点壳组件，提升设备节点视觉表现
+- 新增 TopologyLayout 模型与 API，支持拓扑节点位置持久化
+- 重构 TopologySidebar 侧边栏，布局与交互优化
+- 优化 TopologyModal 与 TopologyControls 交互
+
+#### 功能改进
+- UserManagement 用户管理页面增强，集成角色分配与搜索筛选
+- Login 登录页面 UI 优化
+- 3D 组件 DeviceModel / RackModel / Scene 渲染优化
+- 前端路由 App.jsx 重构，优化页面组织结构
+- backend package.json 新增 init-database / init-permissions 脚本
+- hooks/useAuth 认证 hooks 优化
+- 各路由统一接入鉴权中间件，修复未受保护的路由
+
+### v2.3.5（2026-07-21）
+
+#### 功能改进
+- 耗材统计页面 UI 全面重构：卡片数据驱动渲染、出入库对比改进度条+净流量徽章、类别分布改 SVG 环形图、新增快速筛选按钮
+- CI 升级 GitHub Actions 依赖版本（actions/checkout@v5、docker/login-action@v4、setup-buildx-action@v4、build-push-action@v6）
+
+#### 问题修复
+- systemSettings 修复 projectPath 路径错误（update.js 所在位置指向）
+- DeviceDetailDrawer 修复端口列表按名称数字段自然排序（支持 1/0/10 正确排序）
+
+### v2.3.4（2026-07-21）
+
+#### 新增功能
+- **系统监控**：新增基于 os.cpus().times 差值的 CPU 使用率采样器，跨平台准确获取（替代 os.loadavg）
+- **工单统计**：新增工单趋势折线图组件（纯 SVG，无第三方依赖），支持悬浮查看每日设备详情
+- **工单统计**：新增工单统计时间范围筛选预设（全部/7天/30天/90天/1年）
+- **工单管理**：新增 cancelled（已取消）工单状态支持
+
+#### 功能改进
+- 盘点模块后端 inventory.js 重构优化（+445/-209 行）
+- 盘点任务执行前端 InventoryTaskExecution 页面优化
+
+#### 问题修复
+- 系统信息修复 os.hostname() 引用 osUtils 冗余导入的问题
+- TicketStatistics 修复日期范围选择器支持清空（显示全部数据）
 
 ### v2.3.3（2026-07-21）
 

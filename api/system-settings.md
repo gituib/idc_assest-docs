@@ -220,11 +220,13 @@ GET /api/settings/initialized
 
 ## 获取系统版本信息
 
+> v2.3.4 新增系统监控指标（CPU / 内存 / 磁盘使用率）
+
 ```http
 GET /api/system/info
 ```
 
-无需认证。返回系统版本和部署环境信息。
+无需认证。返回系统版本、运行状态、资源监控等信息。
 
 ### 响应示例
 
@@ -232,23 +234,88 @@ GET /api/system/info
 {
   "success": true,
   "data": {
-    "version": "2.2.4",
-    "name": "IDC 设备资产管理系统",
-    "isDocker": false
+    "system": {
+      "name": "机柜管理系统",
+      "version": "2.4.1",
+      "uptime": 3600,
+      "nodeVersion": "v18.20.0",
+      "platform": "linux",
+      "arch": "x64",
+      "hostname": "idc-server-01",
+      "pid": 1234
+    },
+    "systemMetrics": {
+      "cpu": {
+        "percent": 45,
+        "cores": 8
+      },
+      "memory": {
+        "percent": 62,
+        "totalMB": 32768,
+        "usedMB": 20316,
+        "freeMB": 12452
+      },
+      "disk": {
+        "percent": 55
+      }
+    },
+    "database": {
+      "type": "sqlite",
+      "dialect": "sqlite",
+      "host": "local file",
+      "port": null,
+      "database": "./idc_management.db",
+      "sequelizeVersion": "6.32.1",
+      "status": "connected",
+      "version": "3.45.0"
+    },
+    "repoInfo": {
+      "repoUrl": "https://github.com/gituib/idc_assest",
+      "repoOwner": "gituib",
+      "repoName": "idc_assest",
+      "license": "MIT",
+      "issuesUrl": "https://github.com/gituib/idc_assest/issues"
+    },
+    "supportInfo": {
+      "companyName": null,
+      "contactEmail": null,
+      "contactPhone": null,
+      "companyAddress": null,
+      "systemDescription": "机柜管理系统 - 专业的数据中心设备管理解决方案"
+    },
+    "statistics": {
+      "devices": 120,
+      "racks": 15,
+      "rooms": 3,
+      "users": 10
+    },
+    "timestamp": "2026-07-31T00:00:00.000Z"
   }
 }
 ```
+
+### 监控指标说明
+
+| 指标 | 说明 |
+|------|------|
+| `systemMetrics.cpu.percent` | CPU 使用率（0-100），基于 `os.cpus().times` 差值计算，每 5 秒采样一次 |
+| `systemMetrics.cpu.cores` | CPU 核心数 |
+| `systemMetrics.memory.percent` | 内存使用率百分比 |
+| `systemMetrics.memory.totalMB` | 总内存（MB） |
+| `systemMetrics.database.status` | 数据库连接状态（`connected` / `disconnected`） |
+| `system.uptime` | 进程运行时长（秒） |
+
+> CPU 使用率采用差值计算方式替代 `os.loadavg()`，确保 Linux 和 Windows 平台均返回准确值。
 
 ## 检查系统版本更新
 
 > v2.3.2 新增
 
 ```http
-POST /api/system/check-update
-Authorization: Bearer <token>
+GET /api/system/check-update
 ```
 
-检查是否有新版本可用。返回最新版本信息及更新指引。
+无需认证。调用 GitHub API 获取最新 tag，与当前版本比较。（5 分钟缓存）
 
 ### 响应示例
 
@@ -256,14 +323,16 @@ Authorization: Bearer <token>
 {
   "success": true,
   "data": {
-    "currentVersion": "2.2.4",
-    "latestVersion": "2.2.4",
     "hasUpdate": false,
-    "publishedAt": "2026-07-21T00:00:00.000Z",
-    "releaseUrl": "https://github.com/gituib/idc_assest/releases/tag/v2.3.3",
-    "releaseNotes": "...",
+    "currentVersion": "2.4.1",
+    "latestVersion": "2.4.1",
+    "latestTag": "v2.4.1",
+    "releaseUrl": null,
+    "releaseNotes": null,
+    "publishedAt": null,
+    "projectPath": "/path/to/idc_assest",
     "isDocker": false,
-    "projectPath": "/path/to/idc_assest"
+    "error": null
   }
 }
 ```

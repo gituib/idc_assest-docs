@@ -98,6 +98,12 @@ export default defineConfig({
           ],
         },
         {
+          text: '网络拓扑',
+          items: [
+            { text: '拓扑接口', link: '/api/topology' },
+          ],
+        },
+        {
           text: '业务管理',
           items: [
             { text: '工单接口', link: '/api/tickets' },
@@ -109,6 +115,7 @@ export default defineConfig({
           text: '系统管理',
           items: [
             { text: '用户与角色接口', link: '/api/users' },
+            { text: '权限接口', link: '/api/permissions' },
             { text: '系统设置接口', link: '/api/system-settings' },
             { text: '备份接口', link: '/api/backup' },
             { text: '统计接口', link: '/api/statistics' },

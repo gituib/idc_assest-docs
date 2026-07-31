@@ -21,11 +21,11 @@ IDC 设备资产管理系统是一款面向数据中心（IDC）场景的综合�
 | 🏢 机房管理 | 机房分类、机柜 CRUD、容量统计 | [机房管理](guide/features/room-management) |
 | 💻 设备管理 | 设备全生命周期、端口线缆、导入导出 | [设备管理](guide/features/device-management) |
 | 🎯 3D 可视化 | Three.js 机柜可视化、操作交互 | [仪表盘](guide/features/dashboard) |
-| 📋 工单管理 | 工单流转、故障分类、统计分析 | [工单管理](guide/features/ticket-management) |
-| 📦 耗材管理 | 入库出库、安全库存预警、SN 追踪 | [耗材管理](guide/features/consumable-management) |
+| 📋 工单管理 | 工单流转、故障分类、统计分析、工单趋势图 | [工单管理](guide/features/ticket-management) |
+| 📦 耗材管理 | 入库出库、安全库存预警、SN 追踪、SVG 环形图统计 | [耗材管理](guide/features/consumable-management) |
 | ✅ 资产盘点 | 盘点计划、暂存设备、盘盈处理 | [资产盘点](guide/features/inventory-management) |
 | 📝 操作审计 | 操作日志记录、筛选检索 | [操作日志](guide/features/operation-logs) |
-| 🔧 系统管理 | RBAC 权限、角色管理、系统配置 | [系统管理](guide/features/system-management) |
+| 🔧 系统管理 | RBAC 权限、角色管理、系统配置、权限树配置 | [系统管理](guide/features/system-management) |
 | 🗄️ 备份管理 | 数据备份与恢复 | [备份管理](guide/features/backup-management) |
 | 🏗️ 开发手册 | 架构设计、数据模型、开发规范 | [开发手册](dev/code-wiki) |
 | 🐳 部署运维 | Docker 部署、手动部署、环境配置 | [部署运维](deploy/docker-deploy) |

@@ -41,6 +41,31 @@
 | `operator` | 设备管理（含导入导出、端口、接线）、工单处理 |
 | `viewer` | 查看权限，可创建工单 |
 
+## 接口概览
+
+### 用户管理
+
+| 接口 | 方法 | 说明 |
+|------|------|------|
+| `/api/users` | GET | 获取用户列表 |
+| `/api/users` | POST | 创建用户 |
+| `/api/users/:id` | GET | 获取用户详情 |
+| `/api/users/:id` | PUT | 更新用户 |
+| `/api/users/:id` | DELETE | 删除用户 |
+| `/api/users/:id/profile` | GET | 获取用户个人资料 |
+| `/api/users/:id/profile` | PUT | 更新用户个人资料 |
+
+### 角色管理 (v2.4.0+)
+
+| 接口 | 方法 | 说明 |
+|------|------|------|
+| `/api/roles` | GET | 获取角色列表 |
+| `/api/roles` | POST | 创建角色 |
+| `/api/roles/:id` | GET | 获取角色详情 |
+| `/api/roles/:id` | PUT | 更新角色信息与权限 |
+| `/api/roles/:id` | DELETE | 删除角色 |
+| `/api/permissions` | GET | 获取所有活跃权限列表 |
+
 ## 用户管理
 
 ### 获取用户列表
