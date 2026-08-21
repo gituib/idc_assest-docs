@@ -49,6 +49,7 @@ export default defineConfig({
           items: [
             { text: '开始使用', link: '/guide/getting-started' },
             { text: '用户指南', link: '/guide/user-guide' },
+            { text: '商业授权', link: '/guide/license' },
             { text: '常见问题', link: '/guide/faq' },
           ],
         },

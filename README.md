@@ -18,6 +18,7 @@ IDC 设备资产管理系统是一款面向数据中心（IDC）场景的综合�
 |------|------|------|
 | 🚀 快速开始 | 环境要求、安装启动、基本操作流程 | [快速开始](guide/getting-started) |
 | 📘 用户指南 | 各功能模块详细使用说明 | [用户指南](guide/user-guide) |
+| 🔐 商业授权 | 双授权模式（GPL-3.0 开源 + 商业授权）说明 | [商业授权](guide/license) |
 | 🏢 机房管理 | 机房分类、机柜 CRUD、容量统计 | [机房管理](guide/features/room-management) |
 | 💻 设备管理 | 设备全生命周期、端口线缆、导入导出 | [设备管理](guide/features/device-management) |
 | 🎯 3D 可视化 | Three.js 机柜可视化、操作交互 | [仪表盘](guide/features/dashboard) |
@@ -26,7 +27,7 @@ IDC 设备资产管理系统是一款面向数据中心（IDC）场景的综合�
 | ✅ 资产盘点 | 盘点计划、暂存设备、盘盈处理 | [资产盘点](guide/features/inventory-management) |
 | 📝 操作审计 | 操作日志记录、筛选检索 | [操作日志](guide/features/operation-logs) |
 | 🔧 系统管理 | RBAC 权限、角色管理、系统配置、权限树配置 | [系统管理](guide/features/system-management) |
-| 🗄️ 备份管理 | 数据备份与恢复 | [备份管理](guide/features/backup-management) |
+| 🗄️ 备份管理 | 数据备份与恢复、远端备份（FTP/SFTP/WebDAV） | [备份管理](guide/features/backup-management) |
 | 🏗️ 开发手册 | 架构设计、数据模型、开发规范 | [开发手册](dev/code-wiki) |
 | 🐳 部署运维 | Docker 部署、手动部署、环境配置 | [部署运维](deploy/docker-deploy) |
 | 📡 API 文档 | 后端接口参考 | [API 概览](api/overview) |

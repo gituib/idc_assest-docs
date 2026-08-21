@@ -243,12 +243,14 @@ POST /api/backup/auto/execute
 
 ## 远端备份
 
-支持将本地备份同步到远程存储，协议包括 FTP、SFTP、WebDAV、SMB。
+> v2.5.0 重构：支持多目标远端备份管理（FTP/SFTP/WebDAV 协议目标配置）。
 
-### 获取远端备份配置
+支持将本地备份同步到远程存储，协议包括 FTP、SFTP、WebDAV。
+
+### 获取远端备份目标列表
 
 ```http
-GET /api/backup/remote/configs
+GET /api/backup/remote/targets
 ```
 
 ### 响应示例
@@ -256,49 +258,179 @@ GET /api/backup/remote/configs
 ```json
 {
   "success": true,
-  "data": [
-    {
-      "id": 1,
-      "name": "异地备份服务器",
-      "protocol": "sftp",
-      "host": "backup.example.com",
-      "port": 22,
-      "enabled": true
-    }
-  ]
+  "data": {
+    "targets": [
+      {
+        "id": 1,
+        "name": "异地备份服务器",
+        "protocol": "sftp",
+        "host": "backup.example.com",
+        "port": 22,
+        "username": "backup_user",
+        "prefix": "backups/",
+        "enabled": true
+      }
+    ]
+  }
 }
 ```
 
-### 新增远端备份配置
+### 获取单个远端备份目标
 
 ```http
-POST /api/backup/remote/configs
+GET /api/backup/remote/targets/:id
+```
+
+### 新增远端备份目标
+
+```http
+POST /api/backup/remote/targets
 ```
 
 #### 请求体
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `name` | string | 是 | 配置名称 |
-| `protocol` | string | 是 | 协议：`ftp`、`sftp`、`webdav`、`smb` |
-| `host` | string | 是 | 主机地址 |
-| `port` | integer | 否 | 端口 |
+| `name` | string | 是 | 目标名称 |
+| `protocol` | string | 是 | 协议：`ftp`、`sftp`、`webdav` |
+| `host` | string | 是 | 主机地址（WebDAV 使用 `url`） |
+| `port` | integer | 否 | 端口（FTP 默认 21，SFTP 默认 22） |
 | `username` | string | 是 | 用户名 |
 | `password` | string | 是 | 密码 |
-| `remotePath` | string | 否 | 远程存储路径 |
-| `enabled` | boolean | 否 | 是否启用 |
+| `prefix` | string | 否 | 远端存储路径前缀（默认 `backups/`） |
+| `enabled` | boolean | 否 | 是否启用（默认 true） |
 
-### 测试远端连接
+#### 请求示例
+
+```json
+{
+  "name": "异地备份服务器",
+  "protocol": "sftp",
+  "host": "backup.example.com",
+  "port": 22,
+  "username": "backup_user",
+  "password": "secure_password",
+  "prefix": "backups/",
+  "enabled": true
+}
+```
+
+### 更新远端备份目标
+
+```http
+PUT /api/backup/remote/targets/:id
+```
+
+支持部分更新，可修改名称、协议、主机、端口、账号、路径、启用状态等。
+
+### 删除远端备份目标
+
+```http
+DELETE /api/backup/remote/targets/:id
+```
+
+### 测试远端连接（不保存）
+
+用于添加目标前测试连接配置是否可用。
 
 ```http
 POST /api/backup/remote/test
 ```
 
-### 同步备份到远端
+#### 请求体
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `protocol` | string | 是 | 协议：`ftp`、`sftp`、`webdav` |
+| `host` | string | 是 | 主机地址（WebDAV 使用 `url`） |
+| `port` | integer | 是 | 端口 |
+| `username` | string | 是 | 用户名 |
+| `password` | string | 是 | 密码 |
+
+### 测试已保存目标的连接
 
 ```http
-POST /api/backup/remote/sync
-Body: { "configId": 1, "filename": "backup_20260617_120000.db" }
+POST /api/backup/remote/targets/:id/test
+```
+
+### 获取远端备份全局设置
+
+```http
+GET /api/backup/remote/settings
+```
+
+### 更新远端备份全局设置
+
+```http
+PUT /api/backup/remote/settings
+```
+
+### 获取支持的协议列表
+
+```http
+GET /api/backup/remote/protocols
+```
+
+### 响应示例
+
+```json
+{
+  "success": true,
+  "data": {
+    "protocols": [
+      { "key": "ftp", "value": "ftp", "label": "FTP" },
+      { "key": "sftp", "value": "sftp", "label": "SFTP" },
+      { "key": "webdav", "value": "webdav", "label": "WebDAV" }
+    ]
+  }
+}
+```
+
+### 手动上传备份到远端
+
+```http
+POST /api/backup/remote/upload
+```
+
+#### 请求体
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `filename` | string | 是 | 要上传的备份文件名 |
+| `targetIds` | integer[] | 否 | 指定上传的目标 ID 列表；不传则上传到所有启用的目标 |
+
+#### 请求示例
+
+```json
+{
+  "filename": "backup_20260617_120000.db",
+  "targetIds": [1, 2]
+}
+```
+
+#### 响应示例
+
+```json
+{
+  "success": true,
+  "message": "上传完成",
+  "data": {
+    "filename": "backup_20260617_120000.db",
+    "results": [
+      {
+        "targetId": 1,
+        "targetName": "异地备份服务器",
+        "success": true
+      },
+      {
+        "targetId": 2,
+        "targetName": "本地NAS",
+        "success": false,
+        "error": "连接超时"
+      }
+    ]
+  }
+}
 ```
 
 ## 错误码

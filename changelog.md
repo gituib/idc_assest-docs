@@ -4,6 +4,17 @@ editLink: false
 
 # 版本更新
 
+## 文档站点 v2.5.1（2026-08-21）
+
+> 对应项目代码版本 [v2.5.1]
+
+- **同步项目代码更新至 v2.5.1**
+- 新增 v2.4.2 / v2.5.0 / v2.5.1 版本更新记录
+- 新增「商业授权」文档：双授权模式（GPL-3.0 开源 + 商业授权）完整说明
+- 更新备份管理文档：新增远端备份管理（多目标 FTP/SFTP/WebDAV 配置、一键上传、连接测试）
+- 更新 API 文档：新增远端备份接口（目标配置、连接测试、上传）
+- 更新首页概览与 README 导航
+
 ## 文档站点 v2.4.1（2026-07-31）
 
 > 对应项目代码版本 [v2.4.1]
@@ -27,6 +38,45 @@ editLink: false
 - 版本更新记录与 FAQ 常见问题
 
 ## 项目代码
+
+### v2.5.1（2026-08-18）
+
+#### 新增功能
+- **双授权模式**：新增双授权模式（GPL-3.0 开源 + 商业授权），新增 LICENSE-COMMERCIAL.md 商业授权协议
+- **许可证切换**：LICENSE 由 MIT 切换为 GPL-3.0-or-later，README 更新双授权说明
+
+#### 功能改进
+- **导航重构**：侧边栏菜单重构，将端口/接线管理拆分为独立「线路管理」分组，优化 Logo 与菜单样式
+- **用户管理**：弹窗分组标题与配色统一，联系方式改为左右两列布局
+- **设备字段管理**：引入 designTokens 主题变量统一视觉规范，新增统计卡片与表格样式重构
+
+#### 问题修复
+- **空闲设备**：修复上架时未填 U 位导致原 U 位信息被覆盖丢失的问题，新增 U 位必填校验
+- **空闲设备**：上架弹窗回填原 U 位作为默认值，机柜/U位表单项新增必填校验
+
+### v2.5.0（2026-07-21）
+
+#### 新增功能——远端备份增强
+- **多目标远端备份**：新增多目标远端备份管理（FTP/SFTP/WebDAV 协议目标配置）
+- **一键上传**：新增备份文件一键上传至远端目标功能
+- **连接测试**：新增远端目标连接测试接口
+- **API 新增**：getRemoteTargets / getRemoteSettings / updateRemoteSettings / uploadToRemote / testRemoteTarget
+- **备份管理页面**：新增远端备份管理 UI（+847 行）
+- **自动备份设置**：扩展远端备份配置（+179 行）
+
+#### 问题修复
+- remoteBackup 修复 SFTP 上传未拼接 rootPath，导致文件上传到错误目录的问题
+- remoteBackup 修复 Windows 平台 path.dirname 将正斜杠当反斜杠处理的问题，改用 path.posix
+- remoteBackup 优化 WebDAV 目录创建逻辑，避免 dirname='.' 或 '/' 触发多余调用
+- RemoteBackupSettings 修复分步表单跨步骤字段丢失问题（getFieldsValue(true) 替代 validateFields）
+
+#### 功能改进
+- backend package.json 新增 nodemonConfig 热重载配置（忽略 config/logs/uploads/temp/tests）
+
+### v2.4.2（2026-07-21）
+
+#### 问题修复
+- CableManagement 修复缺失的 FilterOutlined 图标导入
 
 ### v2.4.1（2026-07-21）
 
