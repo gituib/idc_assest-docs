@@ -59,4 +59,42 @@ features:
 ::: tip 部署说明
 本文档站点使用 **VitePress** 构建，通过 GitHub Actions 自动部署到 **GitHub Pages**。  
 配置文件中 `base` 设置为 `/idc_assest-docs/`，对应仓库名称路径，确保静态资源引用正确。
-:::---
+:::
+
+<style>
+/* 首页底部访问统计样式 */
+.visitor-stats {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 32px;
+  margin-top: 48px;
+  padding: 20px 0 4px;
+  border-top: 1px solid var(--vp-c-divider);
+  color: var(--vp-c-text-2);
+  font-size: 14px;
+}
+.visitor-stats .stat-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.visitor-stats .stat-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--vp-c-brand-1);
+}
+</style>
+
+<div class="visitor-stats">
+  <span class="stat-item" id="busuanzi_container_site_pv">
+    <span>总访问量</span>
+    <span class="stat-value" id="busuanzi_value_site_pv"></span>
+    <span>次</span>
+  </span>
+  <span class="stat-item" id="busuanzi_container_site_uv">
+    <span>总访客数</span>
+    <span class="stat-value" id="busuanzi_value_site_uv"></span>
+    <span>人</span>
+  </span>
+</div>

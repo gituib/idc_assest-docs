@@ -13,6 +13,8 @@ export default defineConfig({
 
   head: [
     ['link', { rel: 'icon', href: '/favicon.ico' }],
+    // 不蒜子访问统计脚本（免费、无需注册，适合静态站点）
+    ['script', { async: '', src: '//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js' }],
   ],
 
   themeConfig: {
