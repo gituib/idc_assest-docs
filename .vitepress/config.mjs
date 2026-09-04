@@ -133,7 +133,7 @@ export default defineConfig({
     ],
 
     footer: {
-      message: '基于 MIT 协议开源',
+      message: '基于 GPL-3.0 协议开源',
       copyright: 'Copyright © 2024-2026 IDC设备资产管理系统',
     },
 
