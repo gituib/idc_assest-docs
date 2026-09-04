@@ -1,1 +1,0 @@
-import{_ as e,o as s,c as t}from"./chunks/framework.Cd7uensT.js";const _=JSON.parse('{"title":"","description":"","frontmatter":{},"headers":[],"relativePath":"api/permissions.md","filePath":"api/permissions.md","lastUpdated":1787287203000}'),a={name:"api/permissions.md"};function r(i,o,n,p,c,m){return s(),t("div")}const f=e(a,[["render",r]]);export{_ as __pageData,f as default};
