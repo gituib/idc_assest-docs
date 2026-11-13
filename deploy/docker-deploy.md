@@ -80,31 +80,147 @@ sudo chown -R 1000:1000 /opt/idc_assest/backend/{uploads,logs,backups,temp,confi
 
 :::
 
-### 3. 获取 docker-compose.yml
+### 3. 创建 docker-compose.yml
 
-仓库提供 `docker-compose.prod.yml`，部署时复制一份为 `docker-compose.yml`：
+服务器上不需要克隆仓库，直接在部署目录写入以下内容：
 
 ```bash
 cd /opt/idc_assest
-git clone https://github.com/gituib/idc_assest.git .tmp-repo \
-  && cp .tmp-repo/docker-compose.prod.yml ./docker-compose.yml \
-  && rm -rf .tmp-repo
+cat > docker-compose.yml << 'EOF'
+# ============================================
+# IDC 设备管理系统 - 生产环境配置
+# 从镜像仓库拉取预构建镜像，无 build 指令
+# 默认从 ghcr.io 拉取，可通过 BACKEND/FRONTEND_IMAGE 环境变量切换
+#
+# P1-9 加固：前端仅绑定 127.0.0.1，由前置 TLS 网关对外提供 HTTPS；
+#            MySQL 不对公网暴露；容器降权（cap_drop / no-new-privileges）。
+#
+# 数据库说明：
+#   默认启用内置 mysql 服务（数据存命名卷 mysql_data，持久化）。
+#   改用外部 / 远程 MySQL 时只启动前后端两个服务即可，mysql 不会被创建：
+#       docker compose up -d backend frontend
+#   并把 backend/.env 的 MYSQL_HOST 指向外部地址（同时删掉下方 environment 里的 MYSQL_HOST）。
+#
+# 说明：不使用顶层 version 字段 —— Compose V2 已废弃该字段，保留会输出告警。
+# ============================================
+
+services:
+  # ---------- 后端服务 ----------
+  backend:
+    # 从 ghcr.io 拉取公开镜像，可通过 BACKEND_IMAGE 环境变量覆盖
+    image: ${BACKEND_IMAGE:-ghcr.io/gituib/idc-backend:latest}
+    container_name: idc-backend
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      # 配置映射（核心）
+      - ./backend/.env:/app/.env
+      # 数据持久化
+      - ./backend/uploads:/app/uploads
+      - ./backend/logs:/app/logs
+      - ./backend/backups:/app/backups
+      - ./backend/temp:/app/temp
+      # 含敏感凭据的运行时配置（远端备份账号/私钥等），P1-9 规定不进镜像，挂载持久化
+      - ./backend/config:/app/config
+    env_file:
+      - ./backend/.env
+    environment:
+      - NODE_ENV=production
+      # 默认连内置 mysql 服务；backend/.env 里的 MYSQL_HOST 会被这里覆盖，
+      # 因此不必再为容器场景手工改 .env。改用外部 MySQL 时删掉这两行，
+      # 并让 backend/.env 的 MYSQL_HOST 指向外部地址。
+      - MYSQL_HOST=mysql
+      # 兜底库名：backend/.env 未写 MYSQL_DATABASE 时用根 .env 的值，
+      # 避免容器建的库与后端连的库不一致。
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-idc_management}
+    networks:
+      - idc-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ---------- 前端（Nginx）服务 ----------
+  frontend:
+    # 从 ghcr.io 拉取公开镜像，可通过 FRONTEND_IMAGE 环境变量覆盖
+    image: ${FRONTEND_IMAGE:-ghcr.io/gituib/idc-frontend:latest}
+    pull_policy: always
+    container_name: idc-frontend
+    ports:
+      # P1-9：仅绑定本机回环，不直接对公网暴露 80，由前置 TLS 网关转发
+      - "127.0.0.1:80:80"
+    cap_drop:
+      - ALL
+    cap_add:
+      # nginx master 绑定 80 特权端口所需，其余能力全部丢弃
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - idc-network
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # ---------- MySQL 数据库（默认启用）----------
+  mysql:
+    image: mysql:8.0
+    container_name: idc-mysql
+    # 显式指定字符集：后端 ddl 用 utf8mb4_0900_ai_ci，库默认排序规则不一致会在建表时报错
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      # P1-9：密码一律从 .env 注入，禁止明文默认弱口令。
+      # 缺值时 compose 直接报错退出，比创建出空密码库安全。
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?请在根目录 .env 设置 MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-idc_management}
+      MYSQL_USER: ${MYSQL_USER:-idc_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?请在根目录 .env 设置 MYSQL_PASSWORD}
+    # MySQL 不对公网暴露：不配置 ports，仅在 compose 内网供 backend 访问
+    networks:
+      - idc-network
+    restart: unless-stopped
+    healthcheck:
+      # 用普通账号做 TCP 探测，除就绪外还能验证账号已创建、能连目标库
+      test:
+        - CMD-SHELL
+        - mysqladmin ping -h 127.0.0.1 -u"$$MYSQL_USER" -p"$$MYSQL_PASSWORD" --silent
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+networks:
+  idc-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+EOF
 ```
 
-::: tip 为什么文件名不是 docker-compose.yml？  
-`docker compose` 不带 `-f` 时按顺序查找 `compose.yaml` → `compose.yml` → `docker-compose.yaml` → `docker-compose.yml`。仓库里同时存在 prod / dev 两份配置，所以用 `prod` / `dev` 后缀区分，部署时才复制成默认名字。
+::: warning 内容必须逐字一致
+文件中的 `${...}` 是 Compose 变量插值，`$$MYSQL_USER` 中的 `$$` 是转义（表示传给容器内的字面 `$`）。**不要**把 `$$` 改成单个 `$`，否则健康检查会读到宿主机变量而非容器内变量。
 
-也可以不改名，所有命令都带上文件参数：
-
-```bash
-docker compose -f docker-compose.prod.yml up -d
-```
-
-下文为简洁起见统一使用 `docker compose`，请按你实际的命名执行。
-
+上面用 `'EOF'`（带引号）是为了让 shell 不做任何展开；若用不带引号的 `EOF`，`${BACKEND_IMAGE:-...}` 会被当前 shell 提前求值成空值。
 :::
 
-复制过去后 `docker-compose.yml` 与仓库中的 `docker-compose.prod.yml` **完全一致**，无需手工编辑：镜像版本、数据库、端口、服务依赖都由文件本身与根目录 `.env` 控制。
+::: tip 与仓库文件的关系
+上述内容与仓库根目录的 `docker-compose.prod.yml` 完全一致。镜像版本、数据库、端口、服务依赖都由文件本身与根目录 `.env` 控制，创建后无需手工编辑。
+
+仓库里同时存在 prod / dev 两份配置，用后缀区分；服务器上部署时统一命名为 `docker-compose.yml`，`docker compose` 不带 `-f` 即可自动识别（查找顺序：`compose.yaml` → `compose.yml` → `docker-compose.yaml` → `docker-compose.yml`）。
+:::
 
 ### 4. 配置环境变量
 
