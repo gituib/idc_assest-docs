@@ -4,16 +4,132 @@ editLink: false
 
 # 版本更新
 
-## 文档站点 v2.5.1（2026-08-21）
+## 文档站点 v2.8.4（2026-11-13）
 
-> 对应项目代码版本 [v2.5.1]
+> 对应项目代码版本 [v2.8.4]
 
-- **同步项目代码更新至 v2.5.1**
-- 新增 v2.4.2 / v2.5.0 / v2.5.1 版本更新记录
-- 新增「商业授权」文档：双授权模式（GPL-3.0 开源 + 商业授权）完整说明
-- 更新备份管理文档：新增远端备份管理（多目标 FTP/SFTP/WebDAV 配置、一键上传、连接测试）
-- 更新 API 文档：新增远端备份接口（目标配置、连接测试、上传）
-- 更新首页概览与 README 导航
+本次为**文档完整性专项更新**，依据代码仓库 `backend/config/routes.js`、`backend/routes/`、`backend/models/` 逐项比对后补齐缺失内容并修正错误。
+
+### 新增文档
+
+| 文档 | 说明 |
+|------|------|
+| [IPAM 接口](/api/ipam) | 网段管理、冲突检测、IP 查询与绑定、批量操作、在线探测、定时调度 |
+| [端口采集与设备凭据接口](/api/port-collection) | 采集凭据 CRUD 与测试、交换机端口采集、Redfish 服务器采集、端口选项 |
+| [库房与空闲设备接口](/api/warehouses) | 库房 CRUD、空闲设备转入/上架/恢复/删除，含级联与 U 位校验规则 |
+| [观测与审计接口](/api/system-observability) | 前端错误上报、危险操作审计与风险等级、公开设备信息牌 |
+| [IP 地址管理（IPAM）指南](/guide/features/ipam-management) | 网段规划、状态自动驱动机制、探测原理、典型流程 |
+| [端口自动采集指南](/guide/features/port-collection) | 采集前准备、厂商账号配置、差异分区处理建议、故障排查 |
+| [设备二维码信息牌指南](/guide/features/device-qrcode) | 单/批量生成、字段白名单、打印与部署要求 |
+
+### 内容修正
+
+| 文档 | 修正内容 |
+|------|----------|
+| [认证接口](/api/auth) | **移除不存在的 `/api/auth/refresh` 与双令牌模型**；令牌字段更正为 `token`；路径更正：`/me` → `/profile`、`/send-verify-email` → `/send-verify-code`、`/forgot-password` → `/forgot-password/send-code`；补充 `check-admin`、`unlock`、`change-password`；更正锁定阈值默认值为 3 次、维护模式返回 503 |
+| [API 概览](/api/overview) | 路径修正：`/api/ports` → `/api/device-ports`、`/api/logs` → `/api/operation-logs`、`/api/settings` → `/api/system-settings`；补充 10 项免鉴权白名单、多层校验模型、404 JSON 兜底、错误脱敏、429/503 状态码 |
+| [设备端口接口](/api/ports) | 全文路径前缀修正；`portId`/`nicId` 类型更正为字符串；字段名 `speed` → `portSpeed`；补充更新字段白名单、接线保护、批量删除与批量清理的语义区别 |
+| [操作日志接口](/api/operation-logs) | 路径前缀修正；字段名 `action` → `operationType`、`logId` → `recordId`；`/actions` → `/types`；移除不存在的 `/export` 与 `/archive` 端点；补充 `pageSize` 上限 100 |
+| [系统设置接口](/api/system-settings) | 路径前缀修正；重写为键值对模型（SystemSetting）；补充 SMTP 邮件、维护模式端点、前端端口同步、IPAM 探测配置键 |
+| [权限接口](/api/permissions) | **由空文件补全**：三级权限模型、通配符机制、种子数据与启动期自检、完整权限码清单、IPAM 未纳入权限码的缺口说明 |
+| [系统架构](/dev/architecture) | 重写中间件链为实际注册顺序；补充认证白名单与精确匹配约束、配置驱动路由挂载机制；路由表扩充至 37 个模块；数据模型图补充 IPAM、凭据、库房关系 |
+| [后端架构](/dev/backend-architecture) | 路由注册机制改为 `routeLoader`；路由表按实际文件名与前缀重写；补充响应格式不一致清单与目录结构 |
+
+### 导航与首页
+
+- 侧边栏「功能模块」新增 3 项：设备二维码信息牌、端口自动采集、IP 地址管理
+- 侧边栏「API参考」重组为 5 个分组：API参考 / 资产与线路 / IP 与网络 / 业务管理 / 系统管理
+- 首页特性卡片更新：新增端口自动采集、IPAM、设备二维码信息牌；修正双授权协议描述
+
+## 项目代码
+
+### v2.8.4（2026-11-06）
+
+#### 新增功能
+- **前端错误日志上报**：新增 `frontendLogger` 全局捕获（`window.onerror` / `unhandledrejection` / `ErrorBoundary`）并上报后端统一日志，新增 `POST /api/frontend-logs` 接口（免鉴权 + IP 限流 30 次/分钟）
+- **事故诊断脚本**：新增 `scripts/incident-doctor.js`（只读诊断工具，产出事故卡），新增 `doctor` 命令
+
+#### 功能改进
+- **权限种子初始化**：后端启动时幂等 upsert 补齐权限种子，角色管理页新增加载/错误/空态处理
+- **后端错误处理**：新增 `/api` 404 JSON 兜底与统一错误中间件 `errorHandlerMiddleware`，替代 Express 默认 HTML
+
+### v2.8.3（2026-10-13）
+
+#### 新增功能
+- **IPAM IP 与设备关联**：`IpAddress` 新增 `ipType`（management/business/public/storage/other）、`customTag`、`isPrimaryForDevice`、`statusAutoDriven` 四个字段
+- **IPAM 网段用途标记**：`Subnet` 新增 `purpose` 字段，网段内 IP 绑定时自动推荐 `ipType`
+- **IPAM 绑定/解绑 API**：`PATCH /ips/:id/bind`、`PATCH /ips/:id/unbind`、`POST /ips/batch-bind`，支持事务、主 IP 互斥、状态自动驱动
+- **IPAM 全局 IP 查询**：`GET /ips` 支持 `deviceId` / `ipType` / `status` / `keyword` 筛选
+- **设备删除级联清理**：删除设备时自动解绑已绑 IP，自动驱动的 `used` 状态回退 `free`
+
+#### 功能改进
+- **旧字段迁移**：`Device.ipAddress` 5266 条数据导入 `IpAddress` 表（`ipType=management`、`status=used`），旧字段保留但废弃
+- **PUT /ips/:id 增强**：支持修改 `ipType`/`customTag`/`isPrimaryForDevice`；绑定中的 IP 禁止改为 `gateway`/`excluded`
+- **前端表格增强**：IP 类型彩色标签列、已绑设备列（主 IP 带 ★ 标记）
+
+### v2.8.2（2026-10-13）
+
+#### 新增功能
+- **Playwright E2E 测试框架**：引入 `@playwright/test`，新增 `playwright.config.js`（api/ui/perm/biz/e2e 五个项目，自动拉起前后端、串行规避 SQLite 写锁）
+- **友好数据库错误提示**：新增 `friendlyDbErrorMessage`，唯一约束冲突转为中文提示
+
+#### 功能改进
+- **在线更新依赖检测重构**：逐个核对 `package.json` 直接依赖是否已安装，移除对 `git diff HEAD~1` 的脆性依赖
+
+#### 问题修复
+- 设备 `deviceId` 自动分配并发撞号重试（最多 8 轮 + 随机退避）
+- 新增 U 位越界校验（42U 机柜不允许 U50）
+- 空闲设备上新/编辑/恢复上架增加 U 位冲突校验
+- 转入空闲与批量转入空闲时从原机柜扣减功耗
+- 删除空闲设备时级联清理端口/网卡/工单/盘点记录
+- 接线批量创建补齐四向冲突检查，编辑线缆时校验新端口未被占用
+- 盘点任务 `recordId` 生成改用集合去重，避免 `ER_DUP_ENTRY`
+- 端口日志 `shouldLog` 优先级误判（改用 `??` 空值合并）
+
+### v2.8.1（2026-10-12）
+
+#### 问题修复
+- 接线删除端口状态残留与端口采集事务问题
+- **端口有接线时禁止修改端口信息**
+
+### v2.8.0（2026-10-12）
+
+#### 新增功能
+- **交换机端口自动采集**：SSH/SNMP/Telnet 多协议采集，差异预览后选择性落库
+- **设备凭据管理**：SSH/SNMP/Telnet/Redfish 凭据 CRUD，AES-256-GCM 加密存储，连通性测试
+- **服务器带外采集**：Redfish 读取硬件清单与网卡端口，自动同步 `NetworkCard`
+- **设备/耗材图片上传**
+
+### v2.7.1（2026-10）
+
+#### 新增功能
+- **工单快速报修智能解析**：自然语言描述自动提取设备、故障类型、优先级
+
+### v2.7.0（2026-10）
+
+#### 新增功能
+- **盘点员分配**：盘点任务支持分配指定盘点员
+- **Nginx 配置一键同步**：系统设置中同步前端端口至 Nginx 配置
+
+### v2.6.0（2026-10）
+
+#### 新增功能
+- **设备二维码信息牌**：单设备/批量生成，可下载 PNG、打印 A4、复制链接；免鉴权公开页 `/p/devices/:id`，字段白名单排除 IP 与备注
+
+### v2.5.1（2026-08-18）
+
+#### 新增功能
+- **双授权模式**：GPL-3.0 开源 + 商业授权，新增 `LICENSE-COMMERCIAL.md`
+- **许可证切换**：`LICENSE` 由 MIT 切换为 GPL-3.0-or-later
+
+#### 功能改进
+- **导航重构**：端口/接线管理拆分为独立「线路管理」分组
+- **用户管理**：弹窗分组标题与配色统一
+- **设备字段管理**：引入 `designTokens` 主题变量统一视觉规范
+
+#### 问题修复
+- 空闲设备上架时未填 U 位导致原 U 位信息被覆盖丢失，新增 U 位必填校验
+- 上架弹窗回填原 U 位作为默认值
 
 ## 文档站点 v2.4.1（2026-07-31）
 

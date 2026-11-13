@@ -1,45 +1,65 @@
 # 操作日志接口
 
-操作日志接口用于审计系统中所有用户操作记录，支持查询、统计与导出。
+操作日志接口用于审计系统中所有用户操作记录，支持查询、模块与类型字典、统计分析。
+
+> **路径说明**：实际挂载前缀为 **`/api/operation-logs`**（定义于 `backend/config/routes.js`），不是 `/api/logs`。
+
+## 接口前缀
+
+```
+/api/operation-logs
+```
+
+## 权限码
+
+| 权限码 | 覆盖操作 |
+|--------|----------|
+| `log:view` | 列表、详情、模块字典、类型字典、统计 |
 
 ## 数据模型
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| `logId` | integer | 主键，自增 |
-| `userId` | integer | 操作人 ID |
-| `username` | string | 操作人用户名 |
+| `recordId` | string (PK) | 主键 |
+| `operatorId` | string | 操作人 ID |
+| `operatorName` | string | 操作人姓名 |
 | `module` | string | 操作模块，如 `device`、`ticket`、`user` |
-| `action` | string | 操作类型，如 `create`、`update`、`delete` |
-| `method` | string | HTTP 方法 |
-| `path` | string | 请求路径 |
-| `ip` | string | 操作 IP 地址 |
-| `userAgent` | string | 客户端 User-Agent |
-| `requestBody` | object | 请求体（脱敏后） |
-| `responseStatus` | integer | 响应状态码 |
-| `duration` | integer | 响应耗时（毫秒） |
-| `createdAt` | string | 操作时间 |
+| `operationType` | string | 操作类型，如 `create`、`update`、`delete`、`login` |
+| `targetId` | string | 目标对象 ID |
+| `targetName` | string | 目标对象名称 |
+| `description` | string | 操作描述（中文可读文案） |
+| `result` | string | 操作结果：`success`、`failed` |
+| `ip` | string | 操作来源 IP |
+| `userAgent` | string | 客户端 UA |
+| `requestPath` | string | 请求路径 |
+| `beforeState` / `afterState` | json | 操作前后状态快照（用于危险操作追溯） |
+| `metadata` | json | 附加信息（如空闲原因、批量条数、错误信息） |
+| `createdAt` | datetime | 操作时间 |
+
+> **与旧版差异**：模型使用 `operationType` 而非 `action`，使用 `recordId` 而非 `logId`，`result` 为显式字段。对接时需注意字段命名。
 
 ## 获取操作日志列表
 
 ```http
-GET /api/logs
+GET /api/operation-logs
 ```
 
 ### 查询参数
 
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `userId` | integer | 否 | 按操作人筛选 |
-| `module` | string | 否 | 按模块筛选 |
-| `action` | string | 否 | 按操作类型筛选 |
-| `method` | string | 否 | 按 HTTP 方法筛选 |
-| `ip` | string | 否 | 按 IP 筛选 |
-| `keyword` | string | 否 | 路径关键词 |
-| `startDate` | string | 否 | 起始时间 |
-| `endDate` | string | 否 | 结束时间 |
 | `page` | number | 否 | 页码，默认 1 |
-| `pageSize` | number | 否 | 每页条数，默认 20 |
+| `pageSize` | number | 否 | 每页条数，默认 20，**上限 100** |
+| `module` | string | 否 | 按模块筛选 |
+| `operationType` | string | 否 | 按操作类型筛选 |
+| `targetId` | string | 否 | 按目标对象 ID 筛选 |
+| `operatorId` | string | 否 | 按操作人 ID 筛选 |
+| `keyword` | string | 否 | 关键词模糊搜索（描述、目标名称等） |
+| `startDate` | string | 否 | 起始时间（ISO 8601） |
+| `endDate` | string | 否 | 结束时间（ISO 8601） |
+| `result` | string | 否 | 按结果筛选：`success`、`failed` |
+
+> `pageSize` 由后端强制截断为 `min(pageSize, 100)`，超出部分不生效。
 
 ### 响应示例
 
@@ -49,17 +69,17 @@ GET /api/logs
   "data": {
     "list": [
       {
-        "logId": 1,
-        "userId": 1,
-        "username": "admin",
+        "recordId": "LOG0001",
+        "operatorId": "USR0001",
+        "operatorName": "系统管理员",
         "module": "device",
-        "action": "create",
-        "method": "POST",
-        "path": "/api/devices",
+        "operationType": "create",
+        "targetId": "SRV-0001",
+        "targetName": "计算节点 01",
+        "description": "创建设备 计算节点 01",
+        "result": "success",
         "ip": "192.168.1.100",
-        "responseStatus": 201,
-        "duration": 45,
-        "createdAt": "2026-06-17T08:30:00Z"
+        "createdAt": "2026-06-17T08:30:00.000Z"
       }
     ],
     "total": 1000,
@@ -72,39 +92,20 @@ GET /api/logs
 ## 获取日志详情
 
 ```http
-GET /api/logs/:logId
+GET /api/operation-logs/{recordId}
 ```
 
-### 响应示例
+返回完整记录，含 `beforeState`、`afterState` 与 `metadata`。
 
-```json
-{
-  "success": true,
-  "data": {
-    "logId": 1,
-    "userId": 1,
-    "username": "admin",
-    "module": "device",
-    "action": "create",
-    "method": "POST",
-    "path": "/api/devices",
-    "ip": "192.168.1.100",
-    "userAgent": "Mozilla/5.0...",
-    "requestBody": { "name": "Server-01", "type": "server" },
-    "responseStatus": 201,
-    "duration": 45,
-    "createdAt": "2026-06-17T08:30:00Z"
-  }
-}
-```
-
-## 获取模块列表
-
-获取系统所有操作模块，用于筛选下拉选项。
+## 获取模块字典
 
 ```http
-GET /api/logs/modules
+GET /api/operation-logs/modules
 ```
+
+返回数据库中实际出现过的模块及其中文名称，用于前端筛选下拉。
+
+已覆盖模块包括：设备管理、机房管理、机柜管理、端口管理、线缆管理、网卡管理、耗材管理、库房管理、工单管理、盘点管理、空闲设备、认证管理、用户管理、权限管理、系统设置、备份管理、IPAM 等。
 
 ### 响应示例
 
@@ -113,22 +114,22 @@ GET /api/logs/modules
   "success": true,
   "data": [
     { "value": "device", "label": "设备管理" },
-    { "value": "ticket", "label": "工单管理" },
-    { "value": "user", "label": "用户管理" },
-    { "value": "room", "label": "机房管理" },
-    { "value": "rack", "label": "机柜管理" },
-    { "value": "consumable", "label": "耗材管理" },
-    { "value": "backup", "label": "备份管理" },
-    { "value": "settings", "label": "系统设置" }
+    { "value": "ticket", "label": "工单管理" }
   ]
 }
 ```
 
-## 获取操作类型列表
+## 获取操作类型字典
 
 ```http
-GET /api/logs/actions
+GET /api/operation-logs/types
 ```
+
+### 查询参数
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `module` | string | 否 | 仅返回该模块下出现过的操作类型，`all` 表示全部 |
 
 ### 响应示例
 
@@ -137,31 +138,41 @@ GET /api/logs/actions
   "success": true,
   "data": [
     { "value": "create", "label": "创建" },
-    { "value": "update", "label": "更新" },
-    { "value": "delete", "label": "删除" },
-    { "value": "import", "label": "导入" },
-    { "value": "export", "label": "导出" },
-    { "value": "login", "label": "登录" },
-    { "value": "logout", "label": "退出" }
+    { "value": "to_idle", "label": "转入空闲" },
+    { "value": "restore", "label": "恢复上架" },
+    { "value": "login", "label": "登录" }
   ]
 }
 ```
 
+> **路径说明**：端点为 `/types`，**不存在 `/actions`**。字典基于数据库中已出现的实际类型动态生成，而非固定枚举。
+
+### 主要操作类型
+
+| 分类 | 类型示例 |
+|------|----------|
+| 基础 CRUD | `create`、`update`、`delete`、`batch_delete`、`batch_update` |
+| 导入导出 | `import`、`export`、`batch_import` |
+| 认证 | `login`、`logout`、`register`、`unlock`、`change_password`、`reset_password` |
+| 资产流转 | `to_idle`、`shelve`、`restore`、`batch_idle`、`batch_restore` |
+| 库存 | `in`（入库）、`out`（出库）、`adjust`（库存调整） |
+| 备份 | `backup_create`、`backup_restore`、`backup_upload`、`backup_download`、`backup_delete`、`backup_clean` |
+| 采集 | `port_discovery`、`port_discovery_apply`、`server_discovery`、`credential_test` |
+
 ## 操作统计
 
-按维度统计操作次数，用于审计报表。
-
 ```http
-GET /api/logs/statistics
+GET /api/operation-logs/statistics
 ```
 
 ### 查询参数
 
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `dimension` | string | 否 | 统计维度：`module`（默认）、`action`、`user` |
 | `startDate` | string | 否 | 起始时间 |
 | `endDate` | string | 否 | 结束时间 |
+
+统计结果按模块、操作类型、操作人等维度聚合，日期分组表达式同时兼容 MySQL 与 SQLite。
 
 ### 响应示例
 
@@ -169,70 +180,31 @@ GET /api/logs/statistics
 {
   "success": true,
   "data": {
-    "dimension": "module",
     "items": [
       { "key": "device", "label": "设备管理", "count": 320 },
-      { "key": "ticket", "label": "工单管理", "count": 156 },
-      { "key": "user", "label": "用户管理", "count": 45 }
+      { "key": "ticket", "label": "工单管理", "count": 156 }
     ],
     "total": 521
   }
 }
 ```
 
-## 导出日志
-
-```http
-GET /api/logs/export
-```
-
-### 查询参数
-
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `format` | string | 否 | 格式：`csv`（默认）、`xlsx` |
-| `module` | string | 否 | 按模块筛选 |
-| `startDate` | string | 否 | 起始时间 |
-| `endDate` | string | 否 | 结束时间 |
-
-返回文件流，浏览器自动触发下载。
-
 ## 日志归档
 
-操作日志支持自动归档机制，保障系统性能。
+操作日志的归档通过 `ConsumableLogArchive` 同类机制与数据库维护脚本完成，**本路由未提供 `/export` 与 `/archive` 端点**。
 
-### 手动归档
+如需导出，建议通过数据库直接导出或使用备份功能。日志保留策略在系统设置中配置。
 
-```http
-POST /api/logs/archive
-```
+## 危险操作审计
 
-#### 请求体
+除常规操作日志外，系统另有独立的高危操作审计通道，记录删除、批量删除、全量删除、数据恢复等操作的完整前后快照与风险等级。
 
-| 字段 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `beforeDate` | string | 是 | 归档此日期之前的日志 |
-
-#### 请求示例
-
-```json
-{ "beforeDate": "2025-12-31" }
-```
-
-### 响应
-
-```json
-{
-  "success": true,
-  "data": { "archivedCount": 50000 },
-  "message": "归档成功"
-}
-```
+详见 [观测与审计辅助接口 - 危险操作审计](./system-observability#危险操作审计)。
 
 ## 错误码
 
-| 错误码 | HTTP | 说明 |
-|--------|------|------|
-| `VALIDATION_ERROR` | 400 | 时间范围非法 |
-| `NOT_FOUND` | 404 | 日志不存在 |
-| `FORBIDDEN` | 403 | 无日志查看权限 |
+| HTTP | 说明 |
+|------|------|
+| `403` | 无 `log:view` 权限 |
+| `404` | 日志记录不存在 |
+| `500` | 查询失败 |

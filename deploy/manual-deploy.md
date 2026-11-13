@@ -9,8 +9,8 @@
 | 项目 | 最低要求 | 推荐配置 |
 |------|----------|----------|
 | **操作系统** | Windows 10+、macOS 12+、Linux | 同最低 |
-| **Node.js** | ≥14.0.0 | 20.x LTS |
-| **npm** | ≥6.0.0 | 10.x |
+| **Node.js** | ≥16.0.0 | 20.x LTS |
+| **npm** | ≥8.0.0 | 10.x |
 | **内存** | 4GB | 8GB+ |
 | **磁盘** | 2GB | 10GB+ |
 
@@ -124,6 +124,8 @@ cd frontend && npm run dev
 3. 填写用户名和密码完成注册
 4. **第一个注册的用户自动获得管理员权限**
 
+> **安全提示**：空库时的「首个用户即管理员」行为存在部署窗口期被他人抢注的风险。生产环境建议在 `backend/.env` 中预设 `BOOTSTRAP_ADMIN_USERNAME`，配置后仅当首个注册用户名与该值一致时才授予管理员权限，其他用户名按待审核处理。
+
 ---
 
 ## 生产环境部署
@@ -172,6 +174,9 @@ node install.js -y --skip-build
 # 跳过 Nginx 配置
 node install.js -y --skip-nginx
 
+# 仅重新生成 Nginx 配置（改过 backend/.env 端口后同步）
+node install.js --regen-nginx
+
 # 查看帮助
 node install.js --help
 ```
@@ -198,21 +203,22 @@ FLUSH PRIVILEGES;
 
 ### Nginx 配置
 
-`install.js` 会自动配置 Nginx。配置文件位于 `deploy/nginx-idc.conf`，核心配置如下：
+Nginx 配置**由安装脚本在运行时生成**，仓库中没有预置的 `deploy/nginx-idc.conf` 静态文件。生成逻辑位于 `install/nginx.js` 与 `install/generator.js`，脚本会自动写入 `/etc/nginx/sites-available/idc.conf`（或 `/etc/nginx/conf.d/idc.conf`）并建立 `sites-enabled` 软链。
+
+若需手工配置，可参考生成器实际产出的核心结构：
 
 ```nginx
 server {
     listen 80;
     server_name your-domain.com;
-    client_max_body_size 100M;
+    client_max_body_size 100m;   # 必须 ≥ 后端 MAX_FILE_SIZE_MB
+
     root "/var/www/idc";
     index index.html;
 
-    # Gzip 压缩
     gzip on;
     gzip_vary on;
     gzip_min_length 1024;
-    gzip_proxied any;
     gzip_comp_level 6;
     gzip_types text/plain text/css text/xml text/javascript
                application/javascript application/xml+rss
@@ -231,7 +237,10 @@ server {
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        # 【关键】必须覆盖写，不能用 $proxy_add_x_forwarded_for。
+        # 后端 app.set('trust proxy', 1) 取 XFF 首段识别真实 IP，
+        # 追加写法会让客户端伪造 XFF 绕过登录限流与 IP 封禁。
+        proxy_set_header X-Forwarded-For $remote_addr;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
@@ -247,25 +256,28 @@ server {
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
-        client_max_body_size 100M;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        client_max_body_size 100m;
     }
 
     # 前端路由（SPA）
     location / {
-        try_files $uri $uri/ /index.html =404;
+        try_files $uri $uri/ /index.html;
     }
 }
 ```
 
-**启用配置**：
+**启用配置**（仅在手工编写配置时需要）：
 
 ```bash
 # Ubuntu/Debian
-sudo cp deploy/nginx-idc.conf /etc/nginx/sites-available/idc
+sudo cp /你的路径/idc.conf /etc/nginx/sites-available/idc
 sudo ln -sf /etc/nginx/sites-available/idc /etc/nginx/sites-enabled/idc
 sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t && sudo nginx -s reload
 ```
+
+> 若使用 `node install.js` 自动完成部署，脚本已处理以上全部步骤，无需手工拷贝配置。
 
 ---
 
@@ -405,7 +417,7 @@ sudo kill $(lsof -t -i:8000)
 
 ```bash
 # 检查 Node.js 版本
-node -v  # 需要 ≥18.x
+node -v  # 需要 ≥16.x，推荐 20.x LTS
 
 # 清理并重试
 cd frontend
@@ -441,11 +453,9 @@ sudo chmod -R 777 backend/uploads
 <summary>6. 内存不足</summary>
 
 ```bash
-# 增加内存限制（编辑 ecosystem.config.js）
-node_args: "--max-old-space-size=4096"
-
-# 或命令行
-pm2 restart idc-backend --update-env
+# 增加内存限制（PM2 配置由 install.js 生成于 deploy/ecosystem.config.js）
+# 默认 max_memory_restart 为 500M，改为更高值后重载
+pm2 restart deploy/ecosystem.config.js --update-env
 ```
 </details>
 
@@ -466,8 +476,8 @@ npm install
 <summary>8. PM2 服务消失</summary>
 
 ```bash
-# 重新启动
-pm2 start ecosystem.config.js
+# 重新启动（配置文件由 install.js 生成在 deploy/ 目录下）
+pm2 start deploy/ecosystem.config.js
 pm2 save
 pm2 startup
 ```

@@ -36,7 +36,7 @@ IDC设备资产系统是一款现代化的数据中心（IDC）设备管理平�
 
 ### Docker 部署（推荐）
 
-适用于新服务器上首次部署，使用 3 容器架构（Nginx + 前端静态文件 | Backend | MySQL）。
+适用于新服务器上首次部署。默认 2 容器架构（Nginx 内含前端静态文件并反代后端），MySQL 为可选的第 3 个容器。
 
 #### 前置要求
 
@@ -49,9 +49,9 @@ IDC设备资产系统是一款现代化的数据中心（IDC）设备管理平�
 #### 架构示意
 
 ```
-用户浏览器 → Nginx 容器 :80
-                ├── / 路径 → 返回前端静态页面
-                └── /api 路径 → 反向代理 → Backend 容器 :8000 → MySQL 容器 :3306
+前置 TLS 网关 ──► Nginx 容器 :80（仅绑定 127.0.0.1）
+                    ├── /         → 前端静态文件
+                    └── /api/     → 反向代理 → Backend 容器 :8000 → MySQL :3306
 ```
 
 #### 快速部署
@@ -61,9 +61,40 @@ IDC设备资产系统是一款现代化的数据中心（IDC）设备管理平�
 git clone https://github.com/gituib/idc_assest.git
 cd idc_assest
 
-# 启动生产环境（一键部署）
+# 1. 生成 JWT 密钥（生产必填，缺失会导致后端启动即退出）
+JWT_SECRET=$(openssl rand -hex 32)
+
+# 2. 创建后端配置：Docker 内连接 MySQL 时，MYSQL_HOST 必须是服务名 mysql
+cat > backend/.env << EOF
+PORT=8000
+NODE_ENV=production
+DB_TYPE=mysql
+MYSQL_HOST=mysql
+MYSQL_PORT=3306
+MYSQL_USERNAME=idc_user
+MYSQL_PASSWORD=换成强口令
+MYSQL_DATABASE=idc_management
+JWT_SECRET=${JWT_SECRET}
+TOKEN_EXPIRY=24h
+LOG_LEVEL=info
+EOF
+
+# 3. 准备持久化目录并放开属主（容器内以 uid 1000 的 node 用户运行）
+mkdir -p backend/{uploads,logs,backups,temp}
+sudo chown -R 1000:1000 backend/{uploads,logs,backups,temp}
+
+# 4. 启动（默认不启用 mysql 容器，见下方说明）
 docker compose -f docker-compose.prod.yml up -d
 ```
+
+::: warning 部署前必须确认的三件事
+1. **前端只监听 `127.0.0.1:80`** —— 部署后需在本机前置 TLS 网关才能对外访问，直接访问服务器公网 IP 会连不上。
+2. **`docker-compose.prod.yml` 中 mysql 服务默认被注释** —— 若要保持 `DB_TYPE=mysql`，需先取消注释并填好根目录 `.env` 的 `MYSQL_USER` / `MYSQL_PASSWORD`，否则后端连不上库。
+3. **`backend/.env` 的值不能含 `#`** —— `dotenv` 会将其后内容当注释截断且不报错。
+
+详见 [Docker 部署文档](../deploy/docker-deploy.md)。
+
+:::
 
 首次启动后，后端会自动初始化数据库（约 10-30 秒）。当日志出现以下内容时，说明启动完成：
 
@@ -75,14 +106,14 @@ docker compose -f docker-compose.prod.yml up -d
 #### 服务验证
 
 ```bash
-# 查看容器状态（都应为 Up）
+# 查看容器状态（frontend 为 Up，backend 应为 Up (healthy)）
 docker compose -f docker-compose.prod.yml ps
 
-# 测试健康检查
-curl http://localhost/health
+# 测试健康检查（生产环境只返回 {"status":"ok"}）
+curl http://127.0.0.1/health
 
-# 浏览器访问
-# http://服务器IP
+# 确认前端仅绑回环
+ss -lntp | grep ':80'
 ```
 
 #### 常用 Docker 运维命令
@@ -95,7 +126,7 @@ docker compose -f docker-compose.prod.yml down
 # 查看日志
 docker compose -f docker-compose.prod.yml logs -f
 
-# 重启特定服务
+# 重启特定服务（改了 backend/.env 后建议用 --force-recreate）
 docker compose -f docker-compose.prod.yml restart backend
 
 # 拉取最新镜像并重启（版本升级）
@@ -103,7 +134,7 @@ docker compose -f docker-compose.prod.yml pull
 docker compose -f docker-compose.prod.yml up -d
 ```
 
-> 完整的 Docker 部署说明（含环境变量配置、数据持久化、性能优化等）请参考 [Docker 部署文档](../deploy/docker-deploy.md)。
+> 完整的 Docker 部署说明（含 TLS 网关、数据持久化、常见故障排查等）请参考 [Docker 部署文档](../deploy/docker-deploy.md)。
 
 ### 安装脚本部署
 
