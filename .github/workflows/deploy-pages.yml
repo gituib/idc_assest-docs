@@ -28,6 +28,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        env:
+          # 强制使用官方源，避免锁文件残留的第三方镜像地址在海外 Runner 上超时/重置
+          NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
 
       - name: Build VitePress site
         run: npm run build
